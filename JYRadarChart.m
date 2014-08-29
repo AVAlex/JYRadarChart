@@ -29,7 +29,7 @@
 	self = [super initWithFrame:frame];
 	if (self) {
 		self.backgroundColor = [UIColor whiteColor];
-		_maxValue = 100.0;
+		_maxValue = 1.0;
 		_centerPoint = CGPointMake(self.bounds.size.width / 2, self.bounds.size.height / 2);
 		_r = MIN(self.frame.size.width / 2 - PADDING, self.frame.size.height / 2 - PADDING);
 		_steps = 1;
@@ -48,7 +48,7 @@
 		self.attributes = @[@"you", @"should", @"set", @"these", @"data", @"titles,",
 		                    @"this", @"is", @"just", @"a", @"placeholder"];
         
-		self.scaleFont = [UIFont systemFontOfSize:ATTRIBUTE_TEXT_SIZE];
+		self.scaleFont = [UIFont fontWithName:@"AlegreSans" size:18.0f];
 	}
 	return self;
 }
@@ -132,10 +132,11 @@
             [paragraphStyle setAlignment:NSTextAlignmentCenter];
 
             NSDictionary *attributes = @{ NSFontAttributeName: self.scaleFont,
+                                          NSForegroundColorAttributeName : [UIColor whiteColor],
                                           NSParagraphStyleAttributeName: paragraphStyle };
 
             [attributeName drawInRect:CGRectMake(legendCenter.x - width / 2.0,
-                                                 legendCenter.y - height / 2.0,
+                                                 legendCenter.y - height / 4.0,
                                                  width,
                                                  height)
                        withAttributes:attributes];
@@ -213,6 +214,22 @@
 			CGContextStrokePath(context);
 		}
         
+        // stroke
+        [[colors[serie] colorWithAlphaComponent:1.0] setStroke];
+        for (int i = 0; i < _numOfV; ++i) {
+			CGFloat value = [_dataSeries[serie][i] floatValue];
+			if (i == 0) {
+				CGContextMoveToPoint(context, _centerPoint.x, _centerPoint.y - (value - _minValue) / (_maxValue - _minValue) * _r);
+			}
+			else {
+				CGContextAddLineToPoint(context, _centerPoint.x - (value - _minValue) / (_maxValue - _minValue) * _r * sin(i * radPerV),
+				                        _centerPoint.y - (value - _minValue) / (_maxValue - _minValue) * _r * cos(i * radPerV));
+			}
+		}
+		CGFloat val = [_dataSeries[serie][0] floatValue];
+		CGContextAddLineToPoint(context, _centerPoint.x, _centerPoint.y - (val - _minValue) / (_maxValue - _minValue) * _r);
+        CGContextStrokePath(context);
+        
         
 		//draw data points
 		if (_drawPoints) {
@@ -221,7 +238,7 @@
 				CGFloat xVal = _centerPoint.x - (value - _minValue) / (_maxValue - _minValue) * _r * sin(i * radPerV);
 				CGFloat yVal = _centerPoint.y - (value - _minValue) / (_maxValue - _minValue) * _r * cos(i * radPerV);
                 
-				[colors[serie] setFill];
+				[[colors[serie] colorWithAlphaComponent:1.0] setFill];
 				CGContextFillEllipseInRect(context, CGRectMake(xVal - 4, yVal - 4, 8, 8));
 				[self.backgroundColor setFill];
 				CGContextFillEllipseInRect(context, CGRectMake(xVal - 2, yVal - 2, 4, 4));
